@@ -325,10 +325,25 @@ function _MUTATE<T>(
     }
 
     case 'splice': {
-      const [start, deleteCount, ...adds] = args as [number, number, ...OpaqueRecordInstance[]];
+      const [start, _deleteCount, ...adds] = args as [number, number | undefined, ...OpaqueRecordInstance[]];
+
+      // Don't know if I like this approach, is there not a way where we can just use splice, see what it deleted and go from there?
+      let deleteCount;
+      if (args.length === 1) {
+        // Omitting deleteCount: remove ALL elements (a.k.a. Infinity)
+        deleteCount = Infinity;
+      } else {
+        // deleteCount is undefined, not a valid number, a negative number...
+        if (typeof _deleteCount !== 'number' || _deleteCount < 0) {
+          // do not remove any elements
+          deleteCount = 0;
+        } else {
+          deleteCount = _deleteCount;
+        }
+      }
 
       // detect a full replace
-      if (start === 0 && deleteCount === collection[Context].source.length) {
+      if (start === 0 && deleteCount >= collection[Context].source.length) {
         const newValues = extractIdentifiersFromRecords(adds);
 
         assertNoDuplicates(
