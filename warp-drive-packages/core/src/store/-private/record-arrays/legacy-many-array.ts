@@ -342,8 +342,11 @@ function _MUTATE<T>(
         }
       }
 
+      // sanitize deleteCount to not exceed length / amount of items from index to end
+      deleteCount = Math.min(collection[Context].source.length - start, deleteCount);
+
       // detect a full replace
-      if (start === 0 && deleteCount >= collection[Context].source.length) {
+      if (start === 0 && deleteCount === collection[Context].source.length) {
         const newValues = extractIdentifiersFromRecords(adds);
 
         assertNoDuplicates(
